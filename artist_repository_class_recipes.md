@@ -33,13 +33,13 @@ If seed data is provided (or you already created it), you can skip this step.
 -- so we can start with a fresh state.
 -- (RESTART IDENTITY resets the primary key)
 
-TRUNCATE TABLE students RESTART IDENTITY; -- replace with your own table name.
+TRUNCATE TABLE artists RESTART IDENTITY; -- replace with your own table name.
 
 -- Below this line there should only be `INSERT` statements.
 -- Replace these statements with your own seed data.
 
-INSERT INTO students (name, cohort_name) VALUES ('David', 'April 2022');
-INSERT INTO students (name, cohort_name) VALUES ('Anna', 'May 2022');
+INSERT INTO artists (name, cohort_name) VALUES ('David', 'April 2022');
+INSERT INTO artists (name, cohort_name) VALUES ('Anna', 'May 2022');
 ```
 
 Run this SQL file on the database to truncate (empty) the table, and insert the seed data. Be mindful of the fact any existing records in the table will be deleted.
@@ -58,7 +58,7 @@ Table name: artists
 Table name: albums
 
 Model class
-(in lib/artsits.rb)
+(in lib/artists.rb)
 
 class Artists
 end
@@ -78,10 +78,9 @@ Define the attributes of your Model class. You can usually map the table columns
 # Table name: artists
 
 # Model class
-# (in lib/student.rb)
+# (in lib/artist.rb)
 
 class Artists
-
   # Replace the attributes by your own columns.
   attr_accessor :id, :name, :cohort_name
 end
@@ -90,9 +89,9 @@ end
 # which allows us to set and get attributes on an object,
 # here's an example:
 #
-# student = Student.new
-# student.name = 'Jo'
-# student.name
+# artist = artist.new
+# artist.name = 'Jo'
+# artist.name
 ```
 
 *You may choose to test-drive this class, but unless it contains any more logic than the example above, it is probably not needed.*
@@ -116,29 +115,34 @@ class ArtistsRepository
   # No arguments
   def all
     # Executes the SQL query:
-    # SELECT id, name, genre FROM students;
+    # SELECT id, name, genre FROM artists;
 
     # Returns an array of Artist objects.
   end
 
   # Gets a single record by its ID
   # One argument: the id (number)
-  #def find(id)
-    # Executes the SQL query:
-    # SELECT id, name, cohort_name FROM students WHERE id = $1;
-
-    # Returns a single Student object.
-  #end
+  def find(id)
+        # The placeholder $1 is a "parameter" of the SQL query.
+        # It needs to be matched to the corresponding element 
+        # of the array given in second argument to exec_params.
+        # (If we needed more parameters, we would call them $2, $3...
+        # and would need the same number of values in the params array).
+        sql = 'SELECT name, cohort_name FROM students WHERE id = $1;'
+        params = [id]
+        result = DatabaseConnection.exec_params(sql, params)
+        return result # returns a single artist object 
+  end
 
   # Add more methods below for each operation you'd like to implement.
 
-  # def create(student)
+  # def create(artist)
   # end
 
-  # def update(student)
+  # def update(artist)
   # end
 
-  # def delete(student)
+  # def delete(artist)
   # end
 end
 ```
@@ -151,6 +155,8 @@ These examples will later be encoded as RSpec tests.
 
 ```ruby
 
+# 1 
+# get all artists 
 
 repo = ArtistRepository.new
 
@@ -159,30 +165,33 @@ artists.length => 2
 artsits.first.id => '1'
 artsits.first.name => 'Pixies'
 
-# EXAMPLES
+EXAMPLES BELOW
+repo = ArtistRepository.new
+artists = repo.all
+artists.length # =>  2
+artists[0].id # =>  1
+artists[0].name # =>  'David'
+artists[0].cohort_name # =>  'April 2022'
 
-# 1
-# Get all students
-
-repo = StudentRepository.new
-students = repo.all
-students.length # =>  2
-students[0].id # =>  1
-students[0].name # =>  'David'
-students[0].cohort_name # =>  'April 2022'
-
-students[1].id # =>  2
-students[1].name # =>  'Anna'
-students[1].cohort_name # =>  'May 2022'
+artists[1].id # =>  2
+artists[1].name # =>  'Anna'
+artists[1].cohort_name # =>  'May 2022'
 
 # 2
-# Get a single student
+# Get a single artist
 
-repo = StudentRepository.new
-student = repo.find(1)
-student.id # =>  1
-student.name # =>  'David'
-student.cohort_name # =>  'April 2022'
+repo = ArtistRepository.new
+artist = repo.find(1)
+artist.id # =>  1
+artist.name # =>  'Pixies'
+artist.genre # =>  'Pop'
+
+repo = ArtistRepository.new
+artist = repo.find(2)
+artist.id # =>  2
+artist.name # =>  'Johannes Brahms'
+artist.genre # =>  'Classical'
+
 
 # Add more examples for each method
 ```
@@ -198,17 +207,17 @@ This is so you get a fresh table contents every time you run the test suite.
 ```ruby
 # EXAMPLE
 
-# file: spec/student_repository_spec.rb
+# file: spec/artist_repository_spec.rb
 
-def reset_students_table
-  seed_sql = File.read('spec/seeds_students.sql')
-  connection = PG.connect({ host: '127.0.0.1', dbname: 'students' })
+def reset_artists_table
+  seed_sql = File.read('spec/seeds_artists.sql')
+  connection = PG.connect({ host: '127.0.0.1', dbname: 'artists' })
   connection.exec(seed_sql)
 end
 
-describe StudentRepository do
+describe ArtistRepository do
   before(:each) do 
-    reset_students_table
+    reset_artists_table
   end
 
   # (your tests will go here).

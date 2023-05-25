@@ -12,15 +12,32 @@ RSpec.describe ArtistRepository do
         reset_artists_table
     end
 
-
-    it 'returns the list of artists ' do 
+    it 'returns the list of artists' do 
+        
         repo = ArtistRepository.new
-
-        artists = repo.all
+        artist = repo.all  # is this artists or artist 
 
         expect(artist.length).to eq(2)
         expect(artist.first.id).to eq('1')
         expect(artist.first.name).to eq('Pixies')
-    end
-end
 
+    end
+
+# Second test here - find method 
+    it 'returns a single artist' do 
+        repo = ArtistRepository.new 
+        artist = repo.find(1)
+
+        expect(artist.name).to eq('Pixies')
+        expect(artist.genre).to eq('Pop')
+    end
+
+    it 'returns another single artist' do 
+        repo = ArtistRepository.new 
+        artist = repo.find(2)
+        
+        expect(artist.name).to eq('Johannes Brahms')
+        expect(artist.genre).to eq('Classical')
+    end
+
+end
